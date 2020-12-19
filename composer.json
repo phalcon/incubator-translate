@@ -1,0 +1,62 @@
+{
+    "name": "phalcon/incubator-translate",
+    "description": "Extra Translate adapters for Phalcon Translate component",
+    "keywords": [
+        "framework",
+        "phalcon",
+        "translate",
+        "translations"
+    ],
+    "homepage": "https://phalcon.io",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Phalcon Team",
+            "email": "team@phalcon.io",
+            "homepage": "https://phalcon.io/en/team"
+        },
+        {
+            "name": "Contributors",
+            "homepage": "https://github.com/phalcon/incubator-translate/graphs/contributors"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/phalcon/incubator/issues",
+        "source": "https://github.com/phalcon/incubator-translate",
+        "forum": "https://forum.phalcon.io"
+    },
+    "require": {
+        "php": ">=7.2",
+        "ext-phalcon": "^4.0"
+    },
+    "require-dev": {
+        "ext-pdo": "*",
+        "phalcon/ide-stubs": "^4.0.0",
+        "vimeo/psalm": "^4.1",
+        "squizlabs/php_codesniffer": "^3.5",
+        "codeception/codeception": "^4.1",
+        "codeception/module-asserts": "^1.0.0",
+        "codeception/module-cli": "^1.0",
+        "codeception/module-db": "^1.0",
+        "vlucas/phpdotenv": "^4.1",
+        "codeception/module-phpbrowser": "^1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Phalcon\\Incubator\\Translate\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "archive": {
+        "exclude": [
+            "/.github",
+            "/tests",
+            ".codecov.yml",
+            "codeception.yml",
+            "phpcs.xml.dist",
+            "phpstan.neon.dist",
+            "psalm.xml.dist"
+        ]
+    }
+}
