@@ -31,6 +31,7 @@
     },
     "require-dev": {
         "ext-pdo": "*",
+        "ext-intl": "*",
         "phalcon/ide-stubs": "^4.0.0",
         "vimeo/psalm": "^4.1",
         "squizlabs/php_codesniffer": "^3.5",
@@ -39,12 +40,24 @@
         "codeception/module-cli": "^1.0",
         "codeception/module-db": "^1.0",
         "vlucas/phpdotenv": "^4.1",
-        "codeception/module-phpbrowser": "^1.0.0"
+        "codeception/module-phpbrowser": "^1.0.0",
+        "phalcon/dd": "^1.1"
     },
     "autoload": {
         "psr-4": {
             "Phalcon\\Incubator\\Translate\\": "src/"
         }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Phalcon\\Incubator\\Translate\\Tests\\Functional\\": "tests/functional/",
+            "Phalcon\\Incubator\\Translate\\Tests\\Unit\\": "tests/unit/"
+        }
+    },
+    "suggest": {
+        "ext-pdo": "Required for Database Adapter",
+        "ext-intl": "Required for Interpolator Adapter support",
+        "mongodb/mongodb": "Required for MongoDB Adapter support"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

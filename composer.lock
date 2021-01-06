@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc073a4750376adb3a42002c33031f18",
+    "content-hash": "3b08d37fd0a454e698ae108a88a04a48",
     "packages": [],
     "packages-dev": [
         {
@@ -1610,6 +1610,64 @@
                 "source": "https://github.com/nullivex/lib-array2xml/tree/master"
             },
             "time": "2019-03-29T20:06:56+00:00"
+        },
+        {
+            "name": "phalcon/dd",
+            "version": "v1.1.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/phalcon/dd.git",
+                "reference": "71a05c4f8d4b4216638f61d0c0be312799b0ab08"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/phalcon/dd/zipball/71a05c4f8d4b4216638f61d0c0be312799b0ab08",
+                "reference": "71a05c4f8d4b4216638f61d0c0be312799b0ab08",
+                "shasum": ""
+            },
+            "require": {
+                "ext-phalcon": "^3.0 || ^4.0",
+                "php": "^5.4 || ^7.0"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/helper.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Phalcon Team",
+                    "email": "team@phalconphp.com",
+                    "homepage": "http://phalconphp.com/en/team"
+                },
+                {
+                    "name": "Contributors",
+                    "homepage": "https://github.com/phalcon/dd/graphs/contributors"
+                }
+            ],
+            "description": "This package will add the `dd` and `dump` helpers to your Phalcon application.",
+            "homepage": "https://github.com/phalcon/dd",
+            "keywords": [
+                "VarDumper",
+                "dd",
+                "debug",
+                "dump",
+                "phalcon",
+                "utils"
+            ],
+            "support": {
+                "docs": "https://docs.phalconphp.com/",
+                "forum": "https://forum.phalconphp.com/",
+                "issues": "https://github.com/phalcon/dd/issues",
+                "rss": "https://blog.phalconphp.com/rss",
+                "source": "https://github.com/phalcon/dd"
+            },
+            "time": "2019-07-26T05:29:31+00:00"
         },
         {
             "name": "phalcon/ide-stubs",
@@ -5232,7 +5290,8 @@
         "ext-phalcon": "^4.0"
     },
     "platform-dev": {
-        "ext-pdo": "*"
+        "ext-pdo": "*",
+        "ext-intl": "*"
     },
     "plugin-api-version": "2.0.0"
 }
