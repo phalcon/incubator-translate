@@ -41,7 +41,7 @@ class Database extends AbstractAdapter implements AdapterInterface
         string $tableName,
         string $language,
         InterpolatorFactory $interpolator,
-        array $options
+        array $options = []
     ) {
         parent::__construct($interpolator, $options);
 
@@ -51,63 +51,35 @@ class Database extends AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Returns the translation string of the given key
+     *
+     * @param string $translateKey
+     * @param array $placeholders
+     * @return string
+     */
+    public function t(string $translateKey, array $placeholders = []): string
+    {
+        return $this->query($translateKey, $placeholders);
+    }
+
+    /**
      * Returns the translation string of the given key (alias of method 't')
      *
      * @param array $placeholders
      * @param string $translateKey
      * @return string
      */
-    public function _(string $translateKey, array $placeholders = array()): string
+    public function _(string $translateKey, array $placeholders = []): string
     {
+        return $this->t($translateKey, $placeholders);
     }
 
     /**
-     * Check whether a translation key exists
-     *
-     * @param mixed $translateKey
-     * @return bool
+     * @param string $translateKey
+     * @param array $placeholders
+     * @return string
      */
-    public function offsetExists($translateKey): bool
-    {
-    }
-
-    /**
-     * Returns the translation related to the given key
-     *
-     * @param mixed $translateKey
-     * @return mixed
-     */
-    public function offsetGet($translateKey)
-    {
-    }
-
-    /**
-     * Sets a translation value
-     *
-     * @param string $value
-     * @param mixed $offset
-     * @return void
-     */
-    public function offsetSet($offset, $value)
-    {
-    }
-
-    /**
-     * Unsets a translation from the dictionary
-     *
-     * @param mixed $offset
-     * @return void
-     */
-    public function offsetUnset($offset)
-    {
-    }
-
-    public function exists(string $index): bool
-    {
-        // TODO: Implement exists() method.
-    }
-
-    public function query(string $translateKey, array $placeholders = array()): string
+    public function query(string $translateKey, array $placeholders = []): string
     {
         $translation = $this->connection->fetchOne(
             sprintf('SELECT value FROM %s WHERE language = ? AND key_name = ?', $this->tableName),
@@ -120,8 +92,94 @@ class Database extends AbstractAdapter implements AdapterInterface
         return $this->replacePlaceholders($value, $placeholders);
     }
 
-    public function t(string $translateKey, array $placeholders = array()): string
+    /**
+     * Check whether a translation key exists
+     *
+     * @param mixed $translateKey
+     * @return bool
+     */
+    public function offsetExists($translateKey): bool
     {
-        // TODO: Implement t() method.
+        return $this->exists($translateKey);
+    }
+
+    /**
+     * Returns the translation related to the given key
+     *
+     * @param mixed $translateKey
+     * @return mixed
+     */
+    public function offsetGet($translateKey)
+    {
+        return $this->query($translateKey);
+    }
+
+    /**
+     * Sets a translation value
+     *
+     * @param string $value
+     * @param mixed $offset
+     * @return void
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->update($offset, $value);
+    }
+
+    /**
+     * Unsets a translation from the dictionary
+     *
+     * @param mixed $offset
+     * @return void
+     */
+    public function offsetUnset($offset): void
+    {
+        $this->connection->delete(
+            $this->tableName,
+            'key_name = :key AND language = :lang',
+            [
+                'key'  => $offset,
+                'lang' => $this->language,
+            ]
+        );
+    }
+
+    public function exists(string $index): bool
+    {
+        $result = $this->connection->fetchOne(
+            sprintf(
+                'SELECT COUNT(*) AS `count` FROM %s WHERE language = :language AND key_name = :key_name',
+                $this->tableName
+            ),
+            Enum::FETCH_ASSOC,
+            [
+                'language' => $this->language,
+                'key_name' => $index,
+            ]
+        );
+
+        return !empty($result['count']);
+    }
+
+    /**
+     * Update a translation for given key (No existence check!)
+     *
+     * @param  string  $translateKey
+     * @param  string  $value
+     * @return boolean
+     */
+    protected function update(string $translateKey, string $value)
+    {
+        return $this->connection->updateAsDict(
+            $this->tableName,
+            ['value' => $value],
+            [
+                'conditions' => 'key_name = ? AND language = ?',
+                'bind' => [
+                    'key'  => $translateKey,
+                    'lang' => $this->language,
+                ]
+            ]
+        );
     }
 }
