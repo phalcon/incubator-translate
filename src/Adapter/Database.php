@@ -166,10 +166,21 @@ class Database extends AbstractAdapter implements AdapterInterface
      *
      * @param  string  $translateKey
      * @param  string  $value
-     * @return boolean
+     * @return bool
      */
-    protected function update(string $translateKey, string $value)
+    protected function update(string $translateKey, string $value): bool
     {
+        if (!$this->offsetExists($translateKey)) {
+            return $this->connection->insertAsDict(
+                $this->tableName,
+                [
+                    'key_name' => $translateKey,
+                    'language' => $this->language,
+                    'value' => $value,
+                ]
+            );
+        }
+
         return $this->connection->updateAsDict(
             $this->tableName,
             ['value' => $value],

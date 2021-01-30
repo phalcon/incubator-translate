@@ -105,6 +105,15 @@ SQL;
 
         $translate->offsetSet('update', 'Update value 2');
         $I->assertSame('Update value 2', $translate->offsetGet('update'));
+
+        /**
+         * Auto insert test
+         */
+        $nonExistingKey = 'non-exist-key';
+        $nonExistingValue = 'Non Existing Value';
+        $I->assertFalse($translate->offsetExists($nonExistingKey));
+        $translate->offsetSet($nonExistingKey, $nonExistingValue);
+        $I->assertSame($nonExistingValue, $translate->offsetGet($nonExistingKey));
     }
 
     public function offsetUnset(FunctionalTester $I): void
