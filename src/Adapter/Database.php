@@ -117,8 +117,8 @@ class Database extends AbstractAdapter implements AdapterInterface
     /**
      * Sets a translation value
      *
-     * @param string $value
      * @param mixed $offset
+     * @param string $value
      * @return void
      */
     public function offsetSet($offset, $value): void
