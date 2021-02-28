@@ -15,17 +15,17 @@ class Database extends AbstractAdapter implements AdapterInterface
     /**
      * @var DbAbstractAdapter
      */
-    private $connection;
+    protected $connection;
 
     /**
      * @var string
      */
-    private $tableName;
+    protected $tableName;
 
     /**
      * @var string
      */
-    private $language;
+    protected $language;
 
     /**
      * Database constructor.
