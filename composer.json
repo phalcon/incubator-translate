@@ -41,7 +41,8 @@
         "codeception/module-db": "^1.0",
         "vlucas/phpdotenv": "^4.1",
         "codeception/module-phpbrowser": "^1.0.0",
-        "phalcon/dd": "^1.1"
+        "phalcon/dd": "^1.1",
+        "phalcon/incubator-mongodb": "v1.0.0"
     },
     "autoload": {
         "psr-4": {
