@@ -118,4 +118,52 @@ class Mongo extends AbstractAdapter implements AdapterInterface
     {
         return $this->query($translateKey);
     }
+
+    /**
+     * Sets a translation value
+     *
+     * @param mixed $offset
+     * @param string $value
+     * @return void
+     */
+    public function offsetSet($offset, $value): void
+    {
+        $this->update($offset, $value);
+    }
+
+    /**
+     * Unsets a translation from the dictionary
+     *
+     * @param mixed $offset
+     * @return void
+     */
+    public function offsetUnset($offset): void
+    {
+        $this->update($offset, "");
+    }
+
+    /**
+     * Update a translation for given key
+     *
+     * @param  string  $translateKey
+     * @param  string  $value
+     * @return bool
+     */
+    protected function update(string $translateKey, string $value): bool
+    {
+        $translations = $this->getTranslations($translateKey);
+
+        if ($translations === null) {
+            $translations = new (get_class($this->collection))();
+            $translations->key = $translateKey;
+        }
+
+        if ($value === "" && isset($translations->{$this->language})) {
+            unset($translations->{$this->language});
+        } else {
+            $translations->{$this->language} = $value;
+        }
+
+        return $translations->save();
+    }
 }
