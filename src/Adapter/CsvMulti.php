@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phalcon\Incubator\Translate\Adapter;
 
+use Phalcon\Translate\Adapter\AbstractAdapter;
 use Phalcon\Translate\Adapter\AdapterInterface;
-use Phalcon\Translate\Adapter\Csv;
 use Phalcon\Translate\Exception;
+use Phalcon\Translate\InterpolatorFactory;
 
-class CsvMulti extends Csv implements AdapterInterface
+class CsvMulti extends AbstractAdapter implements AdapterInterface, \ArrayAccess
 {
     /**
      * @var array
@@ -24,6 +25,45 @@ class CsvMulti extends Csv implements AdapterInterface
      * @var string
      */
     private $indexes = [];
+
+    /**
+     * @var array
+     */
+    private $translate;
+
+    /**
+     * CsvMulti constructor.
+     *
+     * @param string              $content
+     * @param string              $locale
+     * @param InterpolatorFactory $interpolator
+     * @param array               $options
+     *
+     * @throws Exception
+     */
+    public function __construct(
+        string $content,
+        string $locale,
+        InterpolatorFactory $interpolator,
+        array $options = []
+    ) {
+        parent::__construct($interpolator, $options);
+
+        $delimiter = ";";
+
+        if (isset($options["delimiter"])) {
+            $delimiter = $options["delimiter"];
+        }
+
+        $enclosure = "\"";
+
+        if (isset($options["enclosure"])) {
+            $enclosure = $options["enclosure"];
+        }
+
+        $this->load($content, 0, $delimiter, $enclosure);
+        $this->setLocale($locale);
+    }
 
     /**
      * Check whether is defined a translation key in the internal array
@@ -63,6 +103,79 @@ class CsvMulti extends Csv implements AdapterInterface
         }
 
         return $this->replacePlaceholders($translation, $placeholders);
+    }
+
+    /**
+     * Sets locale information, according to one from the header row of the source csv
+     * Set it to false for enabling the "no translation mode"
+     *
+     * <code>
+     * // Set locale to Dutch
+     * $adapter->setLocale('nl_NL');
+     * </code>
+     *
+     * @param string $locale
+     * @return CsvMulti
+     * @throws Exception
+     */
+    public function setLocale(string $locale): self
+    {
+        if (!array_key_exists($locale, $this->translate)) {
+            throw new Exception("The locale '{$locale}' is not available in the data source.");
+        }
+
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    /**
+     * Returns all the translation keys
+     */
+    public function getIndexes(): array
+    {
+        return $this->indexes;
+    }
+
+
+    /**
+     * Check whether a translation key exists
+     *
+     * @param mixed $translateKey
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function offsetExists($translateKey): bool
+    {
+        return $this->exists($translateKey);
+    }
+
+    /**
+     * Returns the translation related to the given key
+     *
+     * @param mixed $translateKey
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function offsetGet($translateKey)
+    {
+        return $this->query($translateKey);
+    }
+
+    /**
+     * Sets a translation value
+     *
+     * @param mixed  $offset
+     * @param string $value
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function offsetSet($offset, $value): void
+    {
+        throw new Exception("Translate is an immutable ArrayAccess object");
     }
 
     /**
@@ -108,37 +221,5 @@ class CsvMulti extends Csv implements AdapterInterface
         }
 
         fclose($fileHandler);
-    }
-
-    /**
-     * Sets locale information, according to one from the header row of the source csv
-     * Set it to false for enabling the "no translation mode"
-     *
-     * <code>
-     * // Set locale to Dutch
-     * $adapter->setLocale('nl_NL');
-     * </code>
-     *
-     * @param string $locale
-     * @return CsvMulti
-     * @throws Exception
-     */
-    public function setLocale(string $locale): self
-    {
-        if (!array_key_exists($locale, $this->translate)) {
-            throw new Exception("The locale '{$locale}' is not available in the data source.");
-        }
-
-        $this->locale = $locale;
-
-        return $this;
-    }
-
-    /**
-     * Returns all the translation keys
-     */
-    public function getIndexes(): array
-    {
-        return $this->indexes;
     }
 }
