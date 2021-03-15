@@ -136,49 +136,6 @@ $translate = new Mongo(
 echo $translate->t('application.title');
 ```
 
-
-## ResourceBundle
-
-This adapter uses ResourceBundle as translation frontend.
-
-The extension [intl][3] must be installed in PHP.
-
-```php
-use Phalcon\Translate\Adapter\ResourceBundle;
-
-$translate = new ResourceBundle(
-    [
-        'bundle'   => '/path/to/bundle', // required
-        'locale'   => 'en',              // required
-        'fallback' => false,             // optional, default - true
-    ]
-);
-
-echo $translate->t('application.title');
-
-echo $translate->t(
-    'application.copyright',
-    [
-        'currentYear' => new \DateTime('now'),
-    ]
-);
-```
-
-ResourceBundle source file example
-
-```
-root {
-    application {
-        title { "Hello world" }
-        copyright { "&copy; 2001-{currentYear, date, Y}. Foobar" }
-    }
-}
-```
-
-[1]: http://docs.phalconphp.com/en/latest/api/Phalcon_DI.html
-[2]: http://docs.phalconphp.com/en/latest/reference/volt.html
-[3]: http://php.net/manual/en/book.intl.php
-
 ## MultiCsv
 
 This adapter extends *Phalcon\Translate\Adapter\Csv* by allowing one csv file for several languages.
@@ -192,14 +149,13 @@ label_home;   home;   maison;  casa
 ```
 * PHP example :
 ```php
-// the constructor is inherited from Phalcon\Translate\Adapter\Csv
+// the constructor is inherited from Phalcon\Incubator\Translate\Adapter\CsvMulti
 $titles_translater = new Phalcon\Translate\Adapter\MultiCsv(
-    [
-        'content' => "{$config->langDir}/titles.csv",
-    ]
+    "{$config->langDir}/titles.csv",
+    "es_ES",
+    new InterpolatorFactory(),
+    []
 );
-
-$titles_translater->setLocale('es_ES');
 
 echo $titles_translater->query('label_home'); // string 'casa'
 

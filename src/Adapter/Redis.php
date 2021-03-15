@@ -13,11 +13,11 @@ declare(strict_types=1);
 
 namespace Phalcon\Incubator\Translate\Adapter;
 
+use ArrayAccess;
 use Phalcon\Translate\Adapter\AbstractAdapter;
-use Phalcon\Translate\Adapter\AdapterInterface;
 use Phalcon\Translate\InterpolatorFactory;
 
-class Redis extends AbstractAdapter implements AdapterInterface
+class Redis extends AbstractAdapter implements ArrayAccess
 {
     /**
      * @var string
@@ -52,8 +52,32 @@ class Redis extends AbstractAdapter implements AdapterInterface
     ) {
         parent::__construct($interpolator, $options);
 
-        $this->$redis = $redis;
+        $this->redis = $redis;
         $this->language = $language;
+    }
+
+    /**
+     * Returns the translation string of the given key
+     *
+     * @param string $translateKey
+     * @param array $placeholders
+     * @return string
+     */
+    public function t(string $translateKey, array $placeholders = []): string
+    {
+        return $this->query($translateKey, $placeholders);
+    }
+
+    /**
+     * Returns the translation string of the given key (alias of method 't')
+     *
+     * @param array $placeholders
+     * @param string $translateKey
+     * @return string
+     */
+    public function _(string $translateKey, array $placeholders = []): string
+    {
+        return $this->t($translateKey, $placeholders);
     }
 
     /**
@@ -74,9 +98,20 @@ class Redis extends AbstractAdapter implements AdapterInterface
      */
     public function query(string $translateKey, array $placeholders = []): string
     {
-        $value = $this->getTranslation($translateKey) !== "" ?: $translateKey;
+        $value = $this->getTranslation($translateKey) ?: $translateKey;
 
         return $this->replacePlaceholders($value, $placeholders);
+    }
+
+    /**
+     * Returns the translation related to the given key
+     *
+     * @param mixed $translateKey
+     * @return mixed
+     */
+    public function offsetGet($translateKey)
+    {
+        return $this->query($translateKey);
     }
 
     /**

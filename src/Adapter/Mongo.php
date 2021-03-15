@@ -13,15 +13,14 @@ declare(strict_types=1);
 
 namespace Phalcon\Incubator\Translate\Adapter;
 
-use Phalcon\Incubator\MongoDB\Mvc\CollectionInterface;
+use ArrayAccess;
 use Phalcon\Translate\Adapter\AbstractAdapter;
-use Phalcon\Translate\Adapter\AdapterInterface;
 use Phalcon\Translate\InterpolatorFactory;
 
-class Mongo extends AbstractAdapter implements AdapterInterface
+class Mongo extends AbstractAdapter implements ArrayAccess
 {
     /**
-     * @var CollectionInterface
+     * @var TranslateCollectionInterface
      */
     protected $collection;
 
@@ -33,13 +32,13 @@ class Mongo extends AbstractAdapter implements AdapterInterface
     /**
      * Database constructor.
      *
-     * @param CollectionInterface $collection
-     * @param string $language
-     * @param InterpolatorFactory $interpolator
-     * @param array $options
+     * @param TranslateCollectionInterface $collection
+     * @param string                       $language
+     * @param InterpolatorFactory          $interpolator
+     * @param array                        $options
      */
     public function __construct(
-        CollectionInterface $collection,
+        TranslateCollectionInterface $collection,
         string $language,
         InterpolatorFactory $interpolator,
         array $options = []
@@ -48,6 +47,30 @@ class Mongo extends AbstractAdapter implements AdapterInterface
 
         $this->collection = $collection;
         $this->language = $language;
+    }
+
+    /**
+     * Returns the translation string of the given key
+     *
+     * @param string $translateKey
+     * @param array $placeholders
+     * @return string
+     */
+    public function t(string $translateKey, array $placeholders = []): string
+    {
+        return $this->query($translateKey, $placeholders);
+    }
+
+    /**
+     * Returns the translation string of the given key (alias of method 't')
+     *
+     * @param array $placeholders
+     * @param string $translateKey
+     * @return string
+     */
+    public function _(string $translateKey, array $placeholders = []): string
+    {
+        return $this->t($translateKey, $placeholders);
     }
 
     /**
@@ -67,22 +90,6 @@ class Mongo extends AbstractAdapter implements AdapterInterface
     }
 
     /**
-     * Gets the translations set.
-     *
-     * @param string $translateKey
-     *
-     * @return CollectionInterface
-     */
-    protected function getTranslations(string $translateKey): CollectionInterface
-    {
-        return $this->collection::findFirst([
-            [
-                'key' => $translateKey,
-            ],
-        ]);
-    }
-
-    /**
      * @param string $translateKey
      * @param array  $placeholders
      *
@@ -92,7 +99,11 @@ class Mongo extends AbstractAdapter implements AdapterInterface
     {
         $translations = $this->getTranslations($translateKey);
 
-        $value = isset($translations->{$this->language}) ? $translations->{$this->language} : $translateKey;
+        if (!isset($translations)) {
+            return $translateKey;
+        }
+
+        $value = $translations->getValue($this->language) ?: $translateKey;
 
         return $this->replacePlaceholders($value, $placeholders);
     }
@@ -114,7 +125,7 @@ class Mongo extends AbstractAdapter implements AdapterInterface
      * @param mixed $translateKey
      * @return mixed
      */
-    public function offsetGet($translateKey): string
+    public function offsetGet($translateKey)
     {
         return $this->query($translateKey);
     }
@@ -143,10 +154,30 @@ class Mongo extends AbstractAdapter implements AdapterInterface
     }
 
     /**
+     * Gets the translations set.
+     *
+     * @param string $translateKey
+     *
+     * @return TranslateCollectionInterface
+     */
+    protected function getTranslations(string $translateKey): ?TranslateCollectionInterface
+    {
+        /** @var TranslateCollectionInterface $translations */
+        $translations =  $this->collection::findFirst([
+            [
+                'key' => $translateKey,
+            ],
+        ]);
+
+        return $translations;
+    }
+
+    /**
      * Update a translation for given key
      *
-     * @param  string  $translateKey
-     * @param  string  $value
+     * @param string $translateKey
+     * @param string $value
+     *
      * @return bool
      */
     protected function update(string $translateKey, string $value): bool
@@ -154,15 +185,13 @@ class Mongo extends AbstractAdapter implements AdapterInterface
         $translations = $this->getTranslations($translateKey);
 
         if ($translations === null) {
-            $translations = new (get_class($this->collection))();
-            $translations->key = $translateKey;
+            $className = get_class($this->collection);
+            $translations = new $className();
+
+            $translations->setKey($translateKey);
         }
 
-        if ($value === "" && isset($translations->{$this->language})) {
-            unset($translations->{$this->language});
-        } else {
-            $translations->{$this->language} = $value;
-        }
+        $translations->setValue($this->language, $value);
 
         return $translations->save();
     }

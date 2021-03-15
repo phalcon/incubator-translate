@@ -42,7 +42,9 @@
         "vlucas/phpdotenv": "^4.1",
         "codeception/module-phpbrowser": "^1.0.0",
         "phalcon/dd": "^1.1",
-        "phalcon/incubator-mongodb": "v1.0.0"
+        "phalcon/incubator-mongodb": "v1.0.0",
+        "mongodb/mongodb": "^1.8",
+        "ext-redis": "*"
     },
     "autoload": {
         "psr-4": {
@@ -52,7 +54,8 @@
     "autoload-dev": {
         "psr-4": {
             "Phalcon\\Incubator\\Translate\\Tests\\Functional\\": "tests/functional/",
-            "Phalcon\\Incubator\\Translate\\Tests\\Unit\\": "tests/unit/"
+            "Phalcon\\Incubator\\Translate\\Tests\\Unit\\": "tests/unit/",
+            "Phalcon\\Incubator\\Translate\\Test\\Fixtures\\": "tests/_data/fixtures/"
         }
     },
     "suggest": {

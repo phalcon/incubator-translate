@@ -22,7 +22,7 @@ class CsvMulti extends AbstractAdapter implements AdapterInterface, \ArrayAccess
     private $locale = null;
 
     /**
-     * @var string
+     * @var array
      */
     private $indexes = [];
 
@@ -49,20 +49,39 @@ class CsvMulti extends AbstractAdapter implements AdapterInterface, \ArrayAccess
     ) {
         parent::__construct($interpolator, $options);
 
-        $delimiter = ";";
-
-        if (isset($options["delimiter"])) {
-            $delimiter = $options["delimiter"];
-        }
-
-        $enclosure = "\"";
-
-        if (isset($options["enclosure"])) {
-            $enclosure = $options["enclosure"];
-        }
+        $delimiter = $options["delimiter"] ?? ";";
+        $enclosure = $options["enclosure"] ?? "\"";
 
         $this->load($content, 0, $delimiter, $enclosure);
         $this->setLocale($locale);
+    }
+
+    /**
+     * Returns the translation string of the given key
+     *
+     * @param string $translateKey
+     * @param array  $placeholders
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function t(string $translateKey, array $placeholders = []): string
+    {
+        return $this->query($translateKey, $placeholders);
+    }
+
+    /**
+     * Returns the translation string of the given key (alias of method 't')
+     *
+     * @param array  $placeholders
+     * @param string $translateKey
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function _(string $translateKey, array $placeholders = []): string
+    {
+        return $this->t($translateKey, $placeholders);
     }
 
     /**
@@ -92,15 +111,10 @@ class CsvMulti extends AbstractAdapter implements AdapterInterface, \ArrayAccess
     public function query(string $index, array $placeholders = []): string
     {
         if (!$this->exists($index)) {
-            throw new Exception("They key '{$index}' was not found.");
+            return $index;
         }
 
-        if ($this->locale === false) {
-            // "no translation mode"
-            $translation = $index;
-        } else {
-            $translation = $this->translate[$this->locale][$index];
-        }
+        $translation = $this->locale ? $this->translate[$this->locale][$index] : $index;
 
         return $this->replacePlaceholders($translation, $placeholders);
     }
@@ -182,7 +196,7 @@ class CsvMulti extends AbstractAdapter implements AdapterInterface, \ArrayAccess
      * Load translates from file
      *
      * @param string $file
-     * @param int length
+     * @param int $length
      * @param string $delimiter
      * @param string $enclosure
      * @throws Exception
