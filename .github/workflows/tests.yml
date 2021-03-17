@@ -7,7 +7,7 @@ jobs:
     name: PHP ${{ matrix.php-versions }}
     runs-on: ubuntu-latest
     env:
-      extensions: mbstring, intl, json, phalcon4, mysql, pgsql, xdebug
+      extensions: mbstring, intl, json, phalcon4, mysql, pgsql, xdebug, mongodb, redis
       key: 0.1
     services:
       mysql:
@@ -23,10 +23,23 @@ jobs:
         ports:
           - 5432/tcp
         options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 2
+      mongo:
+        image: mongo:4.2
+        ports:
+          - 27017:27017
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     strategy:
       fail-fast: false
       matrix:
-        php-versions: ['7.2', '7.3', '7.4']
+        php-versions: ['7.3', '7.4']
     steps:
       - uses: actions/checkout@v1
 
@@ -71,7 +84,7 @@ jobs:
           MYSQL_TEST_DB_PORT: ${{ job.services.mysql.ports['3306'] }}
           POSTGRES_TEST_DB_PORT: ${{ job.services.postgres.ports['5432'] }}
         if: success()
-        run: vendor/bin/codecept run --coverage-xml=coverage-${{ matrix.php-versions }}.xml
+        run: vendor/bin/codecept build && vendor/bin/codecept run --coverage-xml=coverage-${{ matrix.php-versions }}.xml
 
       - name: Upload coverage to Codecov
         if: success()

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phalcon\Incubator\Translate\Adapter;
 
+use Phalcon\Translate\Adapter\AbstractAdapter;
 use Phalcon\Translate\Adapter\AdapterInterface;
-use Phalcon\Translate\Adapter\Csv;
 use Phalcon\Translate\Exception;
+use Phalcon\Translate\InterpolatorFactory;
 
-class CsvMulti extends Csv implements AdapterInterface
+class CsvMulti extends AbstractAdapter implements AdapterInterface, \ArrayAccess
 {
     /**
      * @var array
@@ -21,9 +22,67 @@ class CsvMulti extends Csv implements AdapterInterface
     private $locale = null;
 
     /**
-     * @var string
+     * @var array
      */
     private $indexes = [];
+
+    /**
+     * @var array
+     */
+    private $translate;
+
+    /**
+     * CsvMulti constructor.
+     *
+     * @param string              $content
+     * @param string              $locale
+     * @param InterpolatorFactory $interpolator
+     * @param array               $options
+     *
+     * @throws Exception
+     */
+    public function __construct(
+        string $content,
+        string $locale,
+        InterpolatorFactory $interpolator,
+        array $options = []
+    ) {
+        parent::__construct($interpolator, $options);
+
+        $delimiter = $options["delimiter"] ?? ";";
+        $enclosure = $options["enclosure"] ?? "\"";
+
+        $this->load($content, 0, $delimiter, $enclosure);
+        $this->setLocale($locale);
+    }
+
+    /**
+     * Returns the translation string of the given key
+     *
+     * @param string $translateKey
+     * @param array  $placeholders
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function t(string $translateKey, array $placeholders = []): string
+    {
+        return $this->query($translateKey, $placeholders);
+    }
+
+    /**
+     * Returns the translation string of the given key (alias of method 't')
+     *
+     * @param array  $placeholders
+     * @param string $translateKey
+     *
+     * @return string
+     * @throws Exception
+     */
+    public function _(string $translateKey, array $placeholders = []): string
+    {
+        return $this->t($translateKey, $placeholders);
+    }
 
     /**
      * Check whether is defined a translation key in the internal array
@@ -52,24 +111,92 @@ class CsvMulti extends Csv implements AdapterInterface
     public function query(string $index, array $placeholders = []): string
     {
         if (!$this->exists($index)) {
-            throw new Exception("They key '{$index}' was not found.");
+            return $index;
         }
 
-        if ($this->locale === false) {
-            // "no translation mode"
-            $translation = $index;
-        } else {
-            $translation = $this->translate[$this->locale][$index];
-        }
+        $translation = $this->locale ? $this->translate[$this->locale][$index] : $index;
 
         return $this->replacePlaceholders($translation, $placeholders);
+    }
+
+    /**
+     * Sets locale information, according to one from the header row of the source csv
+     * Set it to false for enabling the "no translation mode"
+     *
+     * <code>
+     * // Set locale to Dutch
+     * $adapter->setLocale('nl_NL');
+     * </code>
+     *
+     * @param string $locale
+     * @return CsvMulti
+     * @throws Exception
+     */
+    public function setLocale(string $locale): self
+    {
+        if (!array_key_exists($locale, $this->translate)) {
+            throw new Exception("The locale '{$locale}' is not available in the data source.");
+        }
+
+        $this->locale = $locale;
+
+        return $this;
+    }
+
+    /**
+     * Returns all the translation keys
+     */
+    public function getIndexes(): array
+    {
+        return $this->indexes;
+    }
+
+
+    /**
+     * Check whether a translation key exists
+     *
+     * @param mixed $translateKey
+     *
+     * @return bool
+     * @throws Exception
+     */
+    public function offsetExists($translateKey): bool
+    {
+        return $this->exists($translateKey);
+    }
+
+    /**
+     * Returns the translation related to the given key
+     *
+     * @param mixed $translateKey
+     *
+     * @return mixed
+     * @throws Exception
+     */
+    public function offsetGet($translateKey)
+    {
+        return $this->query($translateKey);
+    }
+
+    /**
+     * Sets a translation value
+     *
+     * @param mixed  $offset
+     * @param string $value
+     *
+     * @return void
+     * @throws Exception
+     */
+    public function offsetSet($offset, $value): void
+    {
+        throw new Exception("Translate is an immutable ArrayAccess object");
     }
 
     /**
      * Load translates from file
      *
      * @param string $file
-     * @param int length
+     * @param int $length
      * @param string $delimiter
      * @param string $enclosure
      * @throws Exception
@@ -108,37 +235,5 @@ class CsvMulti extends Csv implements AdapterInterface
         }
 
         fclose($fileHandler);
-    }
-
-    /**
-     * Sets locale information, according to one from the header row of the source csv
-     * Set it to false for enabling the "no translation mode"
-     *
-     * <code>
-     * // Set locale to Dutch
-     * $adapter->setLocale('nl_NL');
-     * </code>
-     *
-     * @param string $locale
-     * @return CsvMulti
-     * @throws Exception
-     */
-    public function setLocale(string $locale): self
-    {
-        if (!array_key_exists($locale, $this->translate)) {
-            throw new Exception("The locale '{$locale}' is not available in the data source.");
-        }
-
-        $this->locale = $locale;
-
-        return $this;
-    }
-
-    /**
-     * Returns all the translation keys
-     */
-    public function getIndexes(): array
-    {
-        return $this->indexes;
     }
 }
